@@ -20,10 +20,7 @@ class JWTSocialAuthentication(JWTAuthentication):
 
     def authenticate(self, request):
         auth_header = request.META.get("HTTP_AUTHORIZATION", "")
-        print(
-            "Auth header:",
-            request.META.get("HTTP_AUTHORIZATION", "No auth header"),
-        )
+
         if not auth_header:
             return None
 
@@ -31,9 +28,6 @@ class JWTSocialAuthentication(JWTAuthentication):
             auth_type, token = auth_header.split()
             if auth_type.lower() != "bearer":
                 return None
-
-            print("User:", request.user)
-            print("Auth info:", getattr(request, "auth", None))
 
             # Standard JWT authentication
             auth_result = super().authenticate(request)

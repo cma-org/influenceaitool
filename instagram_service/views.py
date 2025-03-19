@@ -40,7 +40,8 @@ class InstagramMediaView(APIView):
                 "provider__in": ["instagram_business", "facebook"]
             }
         else:
-            # If no specific provider in token, try instagram first, then facebook
+            # If no specific provider in token,
+            # try instagram first, then facebook
             account_filter = {
                 "provider__in": ["instagram", "instagram_business", "facebook"]
             }
@@ -64,8 +65,10 @@ class InstagramMediaView(APIView):
         elif account.provider == "instagram_business":
             ig_id = account.provider_account_id
         else:  # Facebook account
-            # For Facebook, we don't have direct Instagram ID in our current implementation
-            # This would need to be enhanced to properly fetch linked Instagram accounts
+            # For Facebook, we don't have direct
+            # Instagram ID in our current implementation
+            # This would need to be enhanced to properly
+            # fetch linked Instagram accounts
             return Response(
                 {"error": "Instagram business account details not available"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -85,7 +88,6 @@ class InstagramMediaView(APIView):
 
         # Check if there was an error
         if "error" in media_data:
-            print("media data: ", media_data)
             return Response(media_data, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(media_data)
@@ -152,7 +154,8 @@ class InstagramAccountInsightsView(APIView):
                     "provider__in": ["instagram_business", "facebook"]
                 }
             else:
-                # If no specific provider in token, try instagram first, then facebook
+                # If no specific provider in token,
+                # try instagram first, then facebook
                 account_filter = {
                     "provider__in": [
                         "instagram",
@@ -181,9 +184,7 @@ class InstagramAccountInsightsView(APIView):
                 instagram_id = account.provider_account_id
             else:
                 return Response(
-                    {
-                        "error": "Instagram business account details not available"
-                    },
+                    {"error": "Instagram business account not available"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -247,7 +248,8 @@ class InstagramFollowersGrowthView(APIView):
                     "provider__in": ["instagram_business", "facebook"]
                 }
             else:
-                # If no specific provider in token, try instagram first, then facebook
+                # If no specific provider in token, try instagram first,
+                #  then facebook
                 account_filter = {
                     "provider__in": [
                         "instagram",
@@ -276,9 +278,7 @@ class InstagramFollowersGrowthView(APIView):
                 instagram_id = account.provider_account_id
             else:
                 return Response(
-                    {
-                        "error": "Instagram business account details not available"
-                    },
+                    {"error": "Instagram business account not available"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -302,7 +302,7 @@ class InstagramFollowersGrowthView(APIView):
 
             if "error" in growth_data:
                 logger.error(
-                    f"Error fetching Instagram followers growth: {growth_data['error']}"
+                    f"Error fetching followers growth: {growth_data['error']}"
                 )
                 return Response(
                     {"error": "Failed to fetch followers growth data"},
@@ -313,7 +313,7 @@ class InstagramFollowersGrowthView(APIView):
 
         except Exception as e:
             logger.exception(
-                "Unexpected error in InstagramFollowersGrowthView"
+                "Unexpected error in InstagramFollowersGrowthView", str(e)
             )
             return Response(
                 {"error": "An unexpected error occurred"},
@@ -347,7 +347,8 @@ class InstagramPostEngagementsView(APIView):
                     "provider__in": ["instagram_business", "facebook"]
                 }
             else:
-                # If no specific provider in token, try instagram first, then facebook
+                # If no specific provider in token, try instagram first,
+                #  then facebook
                 account_filter = {
                     "provider__in": [
                         "instagram",
@@ -376,9 +377,7 @@ class InstagramPostEngagementsView(APIView):
                 instagram_id = account.provider_account_id
             else:
                 return Response(
-                    {
-                        "error": "Instagram business account details not available"
-                    },
+                    {"error": "Instagram business account not available"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -401,9 +400,7 @@ class InstagramPostEngagementsView(APIView):
             )
 
             if "error" in engagement_data:
-                logger.error(
-                    f"Error fetching Instagram post engagements: {engagement_data['error']}"
-                )
+
                 return Response(
                     {"error": "Failed to fetch post engagements data"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -413,7 +410,7 @@ class InstagramPostEngagementsView(APIView):
 
         except Exception as e:
             logger.exception(
-                "Unexpected error in InstagramPostEngagementsView"
+                "Unexpected error in InstagramPostEngagementsView", str(e)
             )
             return Response(
                 {"error": "An unexpected error occurred"},
@@ -447,7 +444,8 @@ class InstagramCurrentMonthLikesView(APIView):
                     "provider__in": ["instagram_business", "facebook"]
                 }
             else:
-                # If no specific provider in token, try instagram first, then facebook
+                # If no specific provider in token, try instagram first,
+                #  then facebook
                 account_filter = {
                     "provider__in": [
                         "instagram",
@@ -476,9 +474,7 @@ class InstagramCurrentMonthLikesView(APIView):
                 instagram_id = account.provider_account_id
             else:
                 return Response(
-                    {
-                        "error": "Instagram business account details not available"
-                    },
+                    {"error": "Instagram business account  not available"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -496,7 +492,7 @@ class InstagramCurrentMonthLikesView(APIView):
 
             if "error" in likes_data:
                 logger.error(
-                    f"Error fetching Instagram current month likes: {likes_data['error']}"
+                    f"err  Insta current month likes: {likes_data['error']}"
                 )
                 return Response(
                     {"error": "Failed to fetch current month likes data"},
@@ -507,7 +503,7 @@ class InstagramCurrentMonthLikesView(APIView):
 
         except Exception as e:
             logger.exception(
-                "Unexpected error in InstagramCurrentMonthLikesView"
+                "Unexpected error in InstagramCurrentMonthLikesView", str(e)
             )
             return Response(
                 {"error": "An unexpected error occurred"},
@@ -541,7 +537,8 @@ class InstagramDemographicsView(APIView):
                     "provider__in": ["instagram_business", "facebook"]
                 }
             else:
-                # If no specific provider in token, try instagram first, then facebook
+                # If no specific provider in token, try instagram first,
+                # then facebook
                 account_filter = {
                     "provider__in": [
                         "instagram",
@@ -570,9 +567,7 @@ class InstagramDemographicsView(APIView):
                 instagram_id = account.provider_account_id
             else:
                 return Response(
-                    {
-                        "error": "Instagram business account details not available"
-                    },
+                    {"error": "Instagram business account  not available"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -590,7 +585,7 @@ class InstagramDemographicsView(APIView):
 
             if "error" in demographic_data:
                 logger.error(
-                    f"Error fetching Instagram demographics: {demographic_data['error']}"
+                    f"Err  Instagram demographics: {demographic_data['error']}"
                 )
                 return Response(
                     {"error": "Failed to fetch demographic insights"},
@@ -600,7 +595,9 @@ class InstagramDemographicsView(APIView):
             return Response(demographic_data, status=status.HTTP_200_OK)
 
         except Exception as e:
-            logger.exception("Unexpected error in InstagramDemographicsView")
+            logger.exception(
+                "Unexpected error in InstagramDemographicsView", str(e)
+            )
             return Response(
                 {"error": "An unexpected error occurred"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,

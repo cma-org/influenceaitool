@@ -38,7 +38,7 @@ class InstagramService:
             }
 
             response = requests.get(endpoint, params=params, timeout=60)
-            response.raise_for_status()  # Raise exception for 4XX/5XX responses
+            response.raise_for_status()  # 4XX/5XX responses
 
             return response.json()
 
@@ -60,9 +60,28 @@ class InstagramService:
         """
         try:
             endpoint = f"{InstagramService.BASE_URL}/{media_id}"
+            media_fields = [
+                "id",
+                "media_type",
+                "media_url",
+                "like_count",
+                "permalink",
+                "thumbnail_url",
+                "timestamp",
+                "username",
+            ]
+            children_fields = [
+                "id",
+                "media_type",
+                "media_url",
+                "thumbnail_url",
+            ]
+            media_fields = ",".join(media_fields)
+            children_fields = ",".join(children_fields)
             params = {
                 "access_token": access_token,
-                "fields": "id,media_type,media_url,like_count,permalink,thumbnail_url,timestamp,username,children{id,media_type,media_url,thumbnail_url}",
+                "fields": media_fields + "," + "children"
+                "{" + children_fields + "}",
             }
 
             response = requests.get(endpoint, params=params, timeout=60)
@@ -78,7 +97,8 @@ class InstagramService:
         ig_id: str, access_token: str
     ) -> Dict[str, Any]:
         """
-        Fetch basic account insights including follower count, engagement rate, etc.
+        Fetch basic account insights including follower count,
+        engagement rate, etc.
 
         Args:
             ig_id: Instagram user ID
@@ -89,9 +109,21 @@ class InstagramService:
         """
         try:
             # Get follower count and other metrics
+            field_values = [
+                "accounts_engaged",
+                "follower_count",
+                "online_followers",
+                "reach",
+                "total_interactions",
+                "likes",
+                "comments",
+                "shares",
+                "saves",
+            ]
+            metrics = ",".join(field_values)
             endpoint = f"{InstagramService.BASE_URL}/{ig_id}/insights"
             params = {
-                "metric": "accounts_engaged,follower_count,online_followers,reach,total_interactions,likes,comments,shares,saves",
+                "metric": metrics,
                 "period": "day",
                 "metric_type": "total_value",
                 "access_token": access_token,
@@ -100,7 +132,6 @@ class InstagramService:
             response = requests.get(endpoint, params=params, timeout=60)
             response.raise_for_status()
             insights_data = response.json()
-            print("insights data", insights_data)
 
             # Get user media to calculate average likes
             media_response = InstagramService.get_user_media(
@@ -141,13 +172,13 @@ class InstagramService:
             avg_saves = total_saves / len(media_ids) if media_ids else 0
             avg_shares = total_shares / len(media_ids) if media_ids else 0
 
-            # Calculate engagement rate (likes + comments + saves + shares) / followers * 100
+            # Calculate engagement rate
+            # (likes + comments + saves + shares) / followers * 100
             follower_count = 0
             for metric in insights_data.get("data", []):
                 if metric["name"] == "follower_count":
                     follower_count = metric["total_value"]["value"]
                     break
-            print("follower_count: ", follower_count)
 
             engagement_rate = (
                 (
@@ -504,7 +535,8 @@ class InstagramService:
         ig_id: str, access_token: str
     ) -> Dict[str, Any]:
         """
-        Get demographic insights including location by country, city, gender, and age
+        Get demographic insights including location
+        by country, city, gender, and age
 
         Args:
             ig_id: Instagram user ID

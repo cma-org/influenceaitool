@@ -80,7 +80,6 @@ class MagicLinkAuthUserSerializer(serializers.Serializer):
         """
         Get token from user
         """
-        print("gets token")
         tokens = CustomTokenObtainPairSerializer.get_token(user)
         return {
             "access": str(tokens.access_token),
@@ -104,7 +103,6 @@ class SocialAuthUserSerializer(serializers.ModelSerializer):
         """
         Get token from user
         """
-        print("gets token")
         tokens = CustomTokenObtainPairSerializer.get_token(user)
         return {
             "access": str(tokens.access_token),

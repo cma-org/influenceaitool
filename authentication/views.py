@@ -72,7 +72,6 @@ class GenerateMagicLinkView(APIView):
 
         # Send email with magic link
         email_sent = EmailService.send_magic_link(email, str(token), user_type)
-        print("email_sent: ", email_sent)
         if email_sent.get("status") != 200:
             magic_link.delete()
             return Response(
@@ -109,14 +108,12 @@ class VerifyMagicLinkView(APIView):
 
         try:
             user = User.objects.get(email=email)
-            print("user: ", user)
             magic_link = MagicLink.objects.get(
                 user=user,
                 token=token,
                 is_used=False,
                 expires_at__gt=timezone.now(),
             )
-            print("magic_link: ", magic_link)
 
             # Mark as used
             magic_link.is_used = True
@@ -125,7 +122,6 @@ class VerifyMagicLinkView(APIView):
             # Generate JWT
             user_serializer = MagicLinkAuthUserSerializer(user)
             data = user_serializer.data
-            print("data: ", data)
 
             return Response(data, status=status.HTTP_201_CREATED)
 
@@ -182,12 +178,10 @@ class InstagramAuthCallbackView(APIView):
 
         code = serializer.validated_data["code"]
         user_type = serializer.validated_data.get("user_type", "influencer")
-        print("code", code, user_type)
 
         try:
             # Exchange code for access token
             token_url = "https://api.instagram.com/oauth/access_token"
-            print("redirect_uri", settings.INSTAGRAM_REDIRECT_URI)
 
             token_payload = {
                 "client_id": settings.INSTAGRAM_CLIENT_ID,
@@ -199,7 +193,6 @@ class InstagramAuthCallbackView(APIView):
 
             token_response = requests.post(token_url, data=token_payload)
             token_data = token_response.json()
-            print("token_response", token_data)
 
             if "error_type" in token_data:
                 return Response(token_data, status=status.HTTP_400_BAD_REQUEST)
@@ -220,7 +213,6 @@ class InstagramAuthCallbackView(APIView):
                 timeout=1000,
             )
             long_lived_token_data = long_lived_token_response.json()
-            print("long_lived_token_response", long_lived_token_data)
 
             if "error_type" in long_lived_token_data:
                 return Response(
@@ -234,7 +226,6 @@ class InstagramAuthCallbackView(APIView):
             profile_url = f"{HOST}/me?fields=id,username&access_token={llast}"
             profile_response = requests.get(profile_url)
             profile_data = profile_response.json()
-            print("profile_data", profile_data)
 
             if "error" in profile_data:
                 return Response(
@@ -247,7 +238,6 @@ class InstagramAuthCallbackView(APIView):
             account = Account.objects.filter(
                 provider="instagram", provider_account_id=user_id
             ).first()
-            print("account", account)
 
             if account:
                 # Existing user
@@ -267,14 +257,11 @@ class InstagramAuthCallbackView(APIView):
 
                 # Check if user with this email exists
                 try:
-                    print("get user")
                     user = User.objects.get(username=username)
                 except User.DoesNotExist:
-                    print("create user")
                     user = User.objects.create_user(**user_data)
-                print(user)
                 # Create account
-                acc = Account.objects.create(
+                Account.objects.create(
                     user=user,
                     type="oauth",
                     provider="instagram",
@@ -282,16 +269,13 @@ class InstagramAuthCallbackView(APIView):
                     access_token=llast,
                     user_type=user_type,  # Store user_type
                 )
-                print("acc:", acc)
 
             # Generate JWT token
             user_serializer = SocialAuthUserSerializer(user)
             data = user_serializer.data
-            print("data: ", data)
             return Response(data)
 
         except Exception as e:
-            print("error:", e)
             return Response(
                 {"error": str(e)}, status=status.HTTP_400_BAD_REQUEST
             )
