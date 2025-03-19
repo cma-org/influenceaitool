@@ -1,0 +1,11 @@
+Your Sign-in Link
+
+Hello,
+
+Click the link below to sign in to your {{ user_type }} account:
+
+{{ magic_link_url }}
+
+This link will expire in {{ expiry_hours }} hours.
+
+If you didn't request this email, please ignore it.

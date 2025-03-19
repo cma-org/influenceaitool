@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .button {
+        background-color: #4caf50;
+        color: white;
+        padding: 12px 20px;
+        text-decoration: none;
+        border-radius: 4px;
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Welcome to Our Platform</h2>
+      <p>Hello! You requested a magic link to sign in as a {{ user_type }}.</p>
+      <p>
+        Click the button below to log in (valid for {{ expiry_hours }} hours):
+      </p>
+      <p><a href="{{ magic_link }}" class="button">Log In</a></p>
+      <p>If you didn't request this, you can safely ignore this email.</p>
+    </div>
+  </body>
+</html>
