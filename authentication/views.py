@@ -4,8 +4,6 @@ Authentication APIs
 
 from datetime import timedelta
 import logging
-import requests
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework.views import APIView
@@ -15,6 +13,7 @@ from rest_framework_simplejwt.views import (
     TokenObtainPairView,
 )
 from users.models import Account, MagicLink
+from instagram_service import InstagramService
 from .serializers import (
     CustomTokenObtainPairSerializer,
     SocialLoginSerializer,
@@ -23,7 +22,6 @@ from .serializers import (
 )
 from .utils import generate_token
 from .email_service import EmailService
-
 
 User = get_user_model()
 
@@ -140,31 +138,6 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 
-class InstagramLoginView(APIView):
-    """
-    Generate Instagram OAuth URL for influencers
-    """
-
-    permission_classes = [permissions.AllowAny]
-
-    def get(self, request):
-        # Instagram OAuth URL
-        cid = settings.INSTAGRAM_CLIENT_ID
-        redirect_uri = settings.INSTAGRAM_REDIRECT_URI
-        host = "https://www.instagram.com/oauth/authorize"
-
-        # Build URL with parameters
-        auth_url = (
-            f"{host}?enable_fb_login=0&force_authentication=1&client_id={cid}"
-            f"&redirect_uri={redirect_uri}&response_type=code&scope="
-            f"instagram_business_basic%2Cinstagram_business_manage_messages%2C"
-            f"instagram_business_manage_comments%2C"
-            f"instagram_business_content_publish%2C"
-            f"instagram_business_manage_insights"
-        )
-        return Response({"login_url": auth_url})
-
-
 class InstagramAuthCallbackView(APIView):
     """
     Handle Instagram OAuth callback for influencers
@@ -181,51 +154,23 @@ class InstagramAuthCallbackView(APIView):
 
         try:
             # Exchange code for access token
-            token_url = "https://api.instagram.com/oauth/access_token"
 
-            token_payload = {
-                "client_id": settings.INSTAGRAM_CLIENT_ID,
-                "client_secret": settings.INSTAGRAM_CLIENT_SECRET,
-                "grant_type": "authorization_code",
-                "redirect_uri": settings.INSTAGRAM_REDIRECT_URI,
-                "code": code,
-            }
-
-            token_response = requests.post(token_url, data=token_payload)
-            token_data = token_response.json()
+            token_data = InstagramService.get_access_token(code)
 
             if "error_type" in token_data:
                 return Response(token_data, status=status.HTTP_400_BAD_REQUEST)
 
-            ast = token_data["access_token"]
-            user_id = token_data["user_id"]
-            host = "https://graph.instagram.com/access_token"
-            cst = settings.INSTAGRAM_CLIENT_SECRET
-
-            # get long lived token
-            long_lived_token_url = (
-                f"{host}?grant_type=ig_exchange_token&"
-                f"client_secret={cst}&access_token={ast}"
+            long_lived_token_data = InstagramService.get_long_lived_token(
+                token_data["access_token"]
             )
-
-            long_lived_token_response = requests.get(
-                long_lived_token_url,
-                timeout=1000,
-            )
-            long_lived_token_data = long_lived_token_response.json()
-
             if "error_type" in long_lived_token_data:
                 return Response(
                     long_lived_token_data, status=status.HTTP_400_BAD_REQUEST
                 )
 
-            llast = long_lived_token_data["access_token"]
-
-            # Get user profile data
-            HOST = "https://graph.instagram.com"
-            profile_url = f"{HOST}/me?fields=id,username&access_token={llast}"
-            profile_response = requests.get(profile_url)
-            profile_data = profile_response.json()
+            profile_data = InstagramService.get_user_profile(
+                long_lived_token_data["access_token"]
+            )
 
             if "error" in profile_data:
                 return Response(
@@ -236,14 +181,14 @@ class InstagramAuthCallbackView(APIView):
 
             # Create or get user with this social account
             account = Account.objects.filter(
-                provider="instagram", provider_account_id=user_id
+                provider="instagram", provider_account_id=token_data["user_id"]
             ).first()
 
             if account:
                 # Existing user
                 user = account.user
                 # Update token and user_type
-                account.access_token = llast
+                account.access_token = long_lived_token_data["access_token"]
                 account.user_type = user_type  # Update user_type
                 account.updated_at = timezone.now()
                 account.save()
@@ -252,7 +197,8 @@ class InstagramAuthCallbackView(APIView):
                 user_data = {
                     "username": username,
                     "name": username,
-                    "email": "user@influenceai.com",
+                    "email": f"{username}@influenceai.com",
+                    "user_type": user_type,
                 }
 
                 # Check if user with this email exists
@@ -265,9 +211,8 @@ class InstagramAuthCallbackView(APIView):
                     user=user,
                     type="oauth",
                     provider="instagram",
-                    provider_account_id=user_id,
-                    access_token=llast,
-                    user_type=user_type,  # Store user_type
+                    provider_account_id=token_data["user_id"],
+                    access_token=long_lived_token_data["access_token"],
                 )
 
             # Generate JWT token

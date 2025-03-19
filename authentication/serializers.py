@@ -40,6 +40,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         # Add custom claims to token
         token["email"] = user.email
         token["name"] = user.name
+        token["user_type"] = user.user_type
 
         # Add provider info if available (for social logins)
         accounts = user.accounts.all()
@@ -48,7 +49,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             latest_account = accounts.order_by("-updated_at").first()
             token["provider"] = latest_account.provider
             token["provider_account_id"] = latest_account.provider_account_id
-            token["user_type"] = latest_account.user_type
 
         return token
 

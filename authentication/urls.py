@@ -2,7 +2,6 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     CustomTokenObtainPairView,
-    InstagramLoginView,
     InstagramAuthCallbackView,
     GenerateMagicLinkView,
     VerifyMagicLinkView,
@@ -15,11 +14,6 @@ urlpatterns = [
     ),
     path("token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     # Instagram auth endpoints (for influencers)
-    path(
-        "instagram/login/",
-        InstagramLoginView.as_view(),
-        name="instagram_login",
-    ),
     path(
         "instagram/callback/",
         InstagramAuthCallbackView.as_view(),

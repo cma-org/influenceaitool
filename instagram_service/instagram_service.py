@@ -6,6 +6,7 @@ import time
 from datetime import datetime, timedelta
 from typing import Dict, Any
 import requests
+from django.conf import settings
 
 
 class InstagramService:
@@ -14,6 +15,55 @@ class InstagramService:
     """
 
     BASE_URL = "https://graph.instagram.com/v22.0"
+    TOKEN_URL = "https://api.instagram.com/oauth/access_token"
+    HOST_URL = "https://graph.instagram.com"
+
+    @staticmethod
+    def get_access_token(code: str):
+        token_payload = {
+            "client_id": settings.INSTAGRAM_CLIENT_ID,
+            "client_secret": settings.INSTAGRAM_CLIENT_SECRET,
+            "grant_type": "authorization_code",
+            "redirect_uri": settings.INSTAGRAM_REDIRECT_URI,
+            "code": code,
+        }
+
+        token_response = requests.post(
+            InstagramService.TOKEN_URL, data=token_payload
+        )
+
+        return token_response.json()
+
+    @staticmethod
+    def get_long_lived_token(access_token: str) -> Dict[str, Any]:
+        """Get a long-lived token valid for 60 days"""
+
+        host = InstagramService.HOST_URL + "/access_token"
+        client_secret = settings.INSTAGRAM_CLIENT_SECRET
+
+        # get long lived token
+        long_lived_token_url = (
+            f"{host}?grant_type=ig_exchange_token&"
+            f"client_secret={client_secret}&access_token={access_token}"
+        )
+
+        long_lived_token_response = requests.get(
+            long_lived_token_url,
+            timeout=10,
+        )
+
+        return long_lived_token_response.json()
+
+    @staticmethod
+    def get_user_profile(long_lived_token: str) -> Dict[str, Any]:
+        """
+        Get user profile with long lived token
+        """
+
+        profile_url = f"{InstagramService.HOST_URL}/me?fields=id,username&access_token={long_lived_token}"
+        profile_response = requests.get(profile_url)
+
+        return profile_response.json()
 
     @staticmethod
     def get_user_media(
