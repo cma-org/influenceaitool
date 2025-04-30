@@ -5,6 +5,7 @@ from .views import (
     InstagramAuthCallbackView,
     GenerateMagicLinkView,
     VerifyMagicLinkView,
+    FacebookTokenAuthView,
 )
 
 urlpatterns = [
@@ -18,6 +19,11 @@ urlpatterns = [
         "instagram/callback/",
         InstagramAuthCallbackView.as_view(),
         name="instagram_callback",
+    ),
+    path(
+        "facebook/exchange-token/",
+        FacebookTokenAuthView.as_view(),
+        name="facebook_callback",
     ),
     path(
         "magic-link/request/",

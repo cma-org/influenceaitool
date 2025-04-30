@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     "users",
     "authentication",
     "instagram_service",
+    "facebook_service",
 ]
 
 MIDDLEWARE = [
@@ -202,6 +203,9 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
+# Meta APP settings
+APP_ID = os.getenv("APP_ID")
+APP_SECRET = os.getenv("APP_SECRET")
 # Social auth settings
 INSTAGRAM_CLIENT_ID = os.getenv("INSTAGRAM_CLIENT_ID", "")
 INSTAGRAM_CLIENT_SECRET = os.getenv("INSTAGRAM_CLIENT_SECRET", "")
@@ -210,8 +214,8 @@ INSTAGRAM_REDIRECT_URI = os.getenv(
     "",
 )
 
-FACEBOOK_CLIENT_ID = os.getenv("FACEBOOK_CLIENT_ID", "")
-FACEBOOK_CLIENT_SECRET = os.getenv("FACEBOOK_CLIENT_SECRET", "")
+FACEBOOK_CLIENT_ID = os.getenv("INSTAGRAM_CLIENT_ID", "")
+FACEBOOK_CLIENT_SECRET = os.getenv("INSTAGRAM_CLIENT_SECRET", "")
 FACEBOOK_REDIRECT_URI = os.getenv(
     "FACEBOOK_REDIRECT_URI",
     "",

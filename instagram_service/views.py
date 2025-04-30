@@ -24,6 +24,7 @@ class InstagramMediaView(APIView):
         """Get user from the request"""
 
         user = request.user
+        print("media view", user)
 
         # Attempt to get provider info from the authentication
         auth_info = getattr(request, "auth", None)
@@ -52,6 +53,7 @@ class InstagramMediaView(APIView):
             .order_by("-updated_at")
             .first()
         )
+        print("Account username", account.user.username)
 
         if not account:
             return Response(

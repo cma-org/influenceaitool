@@ -14,9 +14,9 @@ class InstagramService:
     Service for interacting with the Instagram Graph API
     """
 
+    HOST_URL = "https://graph.instagram.com"
     BASE_URL = "https://graph.instagram.com/v22.0"
     TOKEN_URL = "https://api.instagram.com/oauth/access_token"
-    HOST_URL = "https://graph.instagram.com"
 
     @staticmethod
     def get_access_token(code: str):
@@ -27,12 +27,17 @@ class InstagramService:
             "redirect_uri": settings.INSTAGRAM_REDIRECT_URI,
             "code": code,
         }
+        try:
 
-        token_response = requests.post(
-            InstagramService.TOKEN_URL, data=token_payload
-        )
+            token_response = requests.post(
+                InstagramService.TOKEN_URL, data=token_payload
+            )
+            token_response.raise_for_status()
+            data = token_response.json()
+        except requests.exceptions.RequestException as e:
+            data = e.response.json()
 
-        return token_response.json()
+        return data
 
     @staticmethod
     def get_long_lived_token(access_token: str) -> Dict[str, Any]:
@@ -46,13 +51,48 @@ class InstagramService:
             f"{host}?grant_type=ig_exchange_token&"
             f"client_secret={client_secret}&access_token={access_token}"
         )
+        try:
 
-        long_lived_token_response = requests.get(
-            long_lived_token_url,
-            timeout=10,
-        )
+            long_lived_token_response = requests.get(
+                long_lived_token_url,
+                timeout=10,
+            )
+            long_lived_token_response.raise_for_status()
+            data = long_lived_token_response.json()
+        except requests.exceptions.RequestException as e:
+            data = e.response.json()
 
-        return long_lived_token_response.json()
+        return data
+
+    @staticmethod
+    def get_instagram_user_profile(instagram_id, access_token):
+        """
+        Fetch Instagram user profile
+        """
+        fields = [
+            "followers_count",
+            "follows_count",
+            "id",
+            "media_count",
+            "name",
+            "profile_picture_url",
+            "username",
+        ]
+
+        endpoint = f"{InstagramService.BASE_URL}/{instagram_id}"
+        params = {
+            "access_token": access_token,
+            "fields": ",".join(fields),
+        }
+
+        try:
+            response = requests.get(endpoint, params=params, timeout=60)
+            response.raise_for_status()
+            data = response.json()
+        except requests.exceptions.RequestException as e:
+            data = e.response.json()
+
+        return data
 
     @staticmethod
     def get_user_profile(long_lived_token: str) -> Dict[str, Any]:
@@ -60,10 +100,17 @@ class InstagramService:
         Get user profile with long lived token
         """
 
-        profile_url = f"{InstagramService.HOST_URL}/me?fields=id,username&access_token={long_lived_token}"
-        profile_response = requests.get(profile_url)
-
-        return profile_response.json()
+        host = InstagramService.HOST_URL
+        profile_url = (
+            f"{host}/me?fields=id,username&access_token={long_lived_token}"
+        )
+        try:
+            profile_response = requests.get(profile_url)
+            profile_response.raise_for_status()  # 4XX/5XX responses
+            data = profile_response.json()
+        except requests.exceptions.RequestException as e:
+            data = e.response.json()
+        return data
 
     @staticmethod
     def get_user_media(

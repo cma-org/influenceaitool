@@ -89,7 +89,7 @@ class MagicLinkAuthUserSerializer(serializers.Serializer):
 
 class SocialAuthUserSerializer(serializers.ModelSerializer):
     """
-    Craeted for Facebbook
+    Social Authentication serializer
     """
 
     token = serializers.SerializerMethodField()
